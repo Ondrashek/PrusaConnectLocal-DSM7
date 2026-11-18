@@ -1,0 +1,28 @@
+[
+  {
+    "step_title": "Prusa Connect Local: instalační portál",
+    "items": [
+      {
+        "type": "textfield",
+        "desc": "Zvolte jedinečné heslo alespoň 8 znaků pro zobrazení instalačního kódu. Uživatel: admin. Nejde o heslo DSM ani účtu Prusa.",
+        "subitems": [
+          {
+            "key": "wizard_portal_password",
+            "desc": "Heslo instalačního portálu",
+            "defaultValue": "",
+            "inputType": "password",
+            "validator": {
+              "allowBlank": false,
+              "minLength": 8,
+              "maxLength": 256
+            }
+          }
+        ]
+      },
+      {
+        "type": "description",
+        "desc": "Open the package after installation. The launcher detects your current DSM address and port automatically. HTTPS uses a self-signed certificate. No SSH or Task Scheduler is required. Ports: HTTPS 18443; printer HTTP 18080. LAN use only. Experimental, not hardware-tested."
+      }
+    ]
+  }
+]

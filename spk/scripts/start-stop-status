@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+umask 077
+BASE=/var/packages/PrusaConnectLocal
+DEST=${SYNOPKG_PKGDEST:-$BASE/target}
+VAR=${SYNOPKG_PKGVAR:-$BASE/var}
+export SYNOPKG_PKGVAR="$VAR"
+PID="$VAR/wrapper.pid"
+# Avoid acting on a recycled PID belonging to an unrelated process.
+running() {
+ [ -s "$PID" ] || return 1
+ p=$(cat "$PID")
+ case "$p" in ''|*[!0-9]*) return 1;; esac
+ [ -r "/proc/$p/cmdline" ] || return 1
+ tr '\000' '\n' < "/proc/$p/cmdline" | grep -Fqx "$DEST/bin/pcl-wrapper"
+}
+case "$1" in
+ start)
+  running && exit 0
+  mkdir -p "$VAR"
+  nohup "$DEST/bin/pcl-wrapper" "$DEST/bin/prusa_connect_amd64" >> "$VAR/wrapper.log" 2>&1 < /dev/null &
+  echo $! > "$PID"
+  sleep 2
+  running || exit 1
+  ;;
+ stop)
+  if running; then
+   kill -TERM "$(cat "$PID")"
+   i=0
+   while running && [ "$i" -lt 35 ]; do sleep 1; i=$((i+1)); done
+   running && exit 1
+  fi
+  rm -f "$PID"
+  ;;
+ status) running || exit 3 ;;
+ *) exit 1 ;;
+esac
+exit 0

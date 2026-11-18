@@ -1,0 +1,6 @@
+#!/bin/sh
+# No system modifications during preflight.
+if [ "${SYNOPKG_PKG_STATUS:-}" != "UPGRADE" ]; then
+  [ "${#wizard_portal_password}" -ge 8 ] && [ "${#wizard_portal_password}" -le 256 ] || exit 1
+fi
+exit 0

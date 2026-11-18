@@ -1,0 +1,28 @@
+[
+  {
+    "step_title": "Prusa Connect Local: setup portal",
+    "items": [
+      {
+        "type": "textfield",
+        "desc": "Choose a unique 8+ character password for the setup-code portal. Username: admin. This is separate from DSM and Prusa accounts.",
+        "subitems": [
+          {
+            "key": "wizard_portal_password",
+            "desc": "Setup portal password",
+            "defaultValue": "",
+            "inputType": "password",
+            "validator": {
+              "allowBlank": false,
+              "minLength": 8,
+              "maxLength": 256
+            }
+          }
+        ]
+      },
+      {
+        "type": "description",
+        "desc": "Open the package after installation. The launcher detects your current DSM address and port automatically. HTTPS uses a self-signed certificate. No SSH or Task Scheduler is required. Ports: HTTPS 18443; printer HTTP 18080. LAN use only. Experimental, not hardware-tested."
+      }
+    ]
+  }
+]

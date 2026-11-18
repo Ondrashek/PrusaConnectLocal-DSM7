@@ -1,0 +1,5 @@
+build/
+state/
+*.spk
+*.sha256
+__pycache__/

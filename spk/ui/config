@@ -1,0 +1,12 @@
+{
+  ".url": {
+    "local.pcl.synology": {
+      "type": "url",
+      "icon": "images/app_{0}.png",
+      "title": "Prusa Connect Local",
+      "desc": "HTTPS launcher and protected one-time setup code",
+      "url": "3rdparty/PrusaConnectLocal/index.html",
+      "allUsers": false
+    }
+  }
+}

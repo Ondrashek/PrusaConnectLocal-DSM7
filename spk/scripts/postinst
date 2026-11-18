@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+umask 077
+mkdir -p "$SYNOPKG_PKGVAR"
+if [ ! -s "$SYNOPKG_PKGVAR/portal-auth.json" ]; then
+    export wizard_portal_password
+    "$SYNOPKG_PKGDEST/bin/pcl-wrapper" init
+fi
+exit 0
