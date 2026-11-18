@@ -1,0 +1,11 @@
+{
+  "UPDATE-v5.cs.md": "462c521479e111033ff8c4f51aea45d8a0496c2602fa04daf8a79988d7df87c9",
+  "go.mod": "71bd6f8794556f43771f110666422fe63dc2b323557d5ee9a77b39dbd4c1226b",
+  "tools/build_spk.py": "8cdb8055f47113df8373ad62d3e21f53c6675b654c53436f9459cf8ccb5fe7c6",
+  "tools/test_source.py": "f8114418225da8a3b9d2381e7455937b8642720c7514a3d1e29df253bc070cd5",
+  ".github/workflows/build.yml": "c9a1926436fb33ebef9705787e7fcbca2a50ac2501925756f44b6d4b513db8af",
+  "cmd/pcl-wrapper/main.go": "7dd5be87367fd2d1aca6c51898e6573b020eb73d933e3b2f263b9bdc9deef859",
+  "cmd/pcl-wrapper/migration.go": "1fd42b3c382a3ff0ae0ac5b4e5e21f5b8b2e5b7cdacf955d8b255924e24675f8",
+  "cmd/pcl-wrapper/migration_test.go": "46c519dcc6a70bc40d2ca8b45cf72af02102295ed404bf25dde4ddeed8b4a229",
+  "spk/ui/index.html": "534efb952451960f72cc16f5fe414d586f1c990b19908655a0dacf8e48cff39c"
+}

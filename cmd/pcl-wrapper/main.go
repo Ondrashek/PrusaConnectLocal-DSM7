@@ -22,8 +22,6 @@ import (
  "math/big"
  "net"
  "net/http"
- "net/http/httputil"
- "net/url"
  "os"
  "os/exec"
  "os/signal"
@@ -37,6 +35,7 @@ import (
 )
 const httpsPort = 18443
 const backendPort = 18080
+const portalPort = 18444
 var state string
 var mu sync.RWMutex
 var setupCode string
@@ -96,6 +95,7 @@ func dsmPorts(path string) map[string]int {
 }
 func runChild(ctx context.Context, binary string) {
  for ctx.Err()==nil {
+  if err:=migrateConfig(state); err!=nil { log.Printf("configuration migration refused: %v",err); mu.Lock(); childStatus="configuration error; see wrapper.log"; mu.Unlock(); return }
   mu.Lock(); setupCode=""; setupAt=time.Time{}; childStatus="starting"; mu.Unlock()
   cmd:=exec.Command(binary,"--config",filepath.Join(state,"config","config.yaml"))
   cmd.Dir=state
@@ -126,37 +126,25 @@ func runChild(ctx context.Context, binary string) {
   select {case <-ctx.Done():return;case <-time.After(5*time.Second):}
  }
 }
-var page=template.Must(template.New("setup").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Prusa Connect Local | Synology</title><style>body{font:16px system-ui;background:#f4f6fa;color:#17202e;max-width:780px;margin:6vh auto;padding:24px}main{background:white;padding:32px;border-radius:20px}code{font-size:1.35rem}a{color:#b8430c}small{color:#536174}</style><main><select id="language"><option value="en">English</option><option value="cs">Čeština</option></select><h1>Prusa Connect Local</h1><p data-en="Unofficial Synology integration" data-cs="Neoficiální integrace pro Synology">Unofficial Synology integration</p><h2 data-en="One-time setup code" data-cs="Jednorázový instalační kód">One-time setup code</h2><code>{{.Code}}</code><p data-en="If the code is missing, wait a few seconds and refresh. After setup it is no longer needed. Never share it." data-cs="Pokud kód chybí, chvíli počkejte a obnovte stránku. Po nastavení už není potřeba. Nikomu jej nesdělujte.">If the code is missing, wait a few seconds and refresh. After setup it is no longer needed. Never share it.</p><p><a href="/" data-en="Open Prusa Connect (HTTPS)" data-cs="Otevřít Prusa Connect (HTTPS)">Open Prusa Connect (HTTPS)</a></p><p>Status: {{.Status}}</p><small>DSM detected ports: {{.Ports}}<br>HTTPS: 18443 | Printer HTTP: 18080</small><p data-en="Use only on a trusted LAN. The HTTP printer listener is not encrypted. This package does not configure your firewall or router." data-cs="Používejte jen v důvěryhodné LAN. HTTP spojení tiskáren není šifrované. Balíček nemění firewall ani router.">Use only on a trusted LAN. The HTTP printer listener is not encrypted. This package does not configure your firewall or router.</p></main><script>const s=document.querySelector('#language');function lang(l){document.documentElement.lang=l;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[l]);localStorage.setItem('pcl-language',l)}s.value=localStorage.getItem('pcl-language')||(navigator.language.startsWith('cs')?'cs':'en');s.onchange=()=>lang(s.value);lang(s.value)</script></html>`))
+var page=template.Must(template.New("setup").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Prusa Connect Local | Synology</title><style>body{font:16px system-ui;background:#f4f6fa;color:#17202e;max-width:780px;margin:6vh auto;padding:24px}main{background:white;padding:32px;border-radius:20px}code{font-size:1.35rem}a{color:#b8430c}small{color:#536174}</style><main><select id="language"><option value="en">English</option><option value="cs">Čeština</option></select><h1>Prusa Connect Local</h1><p data-en="Unofficial Synology integration" data-cs="Neoficiální integrace pro Synology">Unofficial Synology integration</p><h2 data-en="One-time setup code" data-cs="Jednorázový instalační kód">One-time setup code</h2><code>{{.Code}}</code><p data-en="If the code is missing, wait a few seconds and refresh. After setup it is no longer needed. Never share it." data-cs="Pokud kód chybí, chvíli počkejte a obnovte stránku. Po nastavení už není potřeba. Nikomu jej nesdělujte.">If the code is missing, wait a few seconds and refresh. After setup it is no longer needed. Never share it.</p><p><a id="open-app" href="/" data-en="Open Prusa Connect (HTTPS)" data-cs="Otevřít Prusa Connect (HTTPS)">Open Prusa Connect (HTTPS)</a></p><p>Status: {{.Status}}</p><small>DSM detected ports: {{.Ports}}<br>Web HTTPS: 18443 | Setup portal HTTPS: 18444 | Default printer HTTP: 18080</small><p data-en="Use only on a trusted LAN. Printer encryption depends on connector settings. This package does not configure your firewall or router." data-cs="Používejte jen v důvěryhodné LAN. Šifrování tiskáren závisí na nastavení konektoru. Balíček nemění firewall ani router.">Use only on a trusted LAN. Printer encryption depends on connector settings. This package does not configure your firewall or router.</p></main><script>const app=new URL(location.href);app.port='18443';app.pathname='/';app.search='';app.hash='';document.querySelector('#open-app').href=app.href;const s=document.querySelector('#language');function lang(l){document.documentElement.lang=l;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[l]);localStorage.setItem('pcl-language',l)}s.value=localStorage.getItem('pcl-language')||(navigator.language.startsWith('cs')?'cs':'en');s.onchange=()=>lang(s.value);lang(s.value)</script></html>`))
 func main() {
- state=os.Getenv("SYNOPKG_PKGVAR"); if state=="" { state="./state" }; must(os.MkdirAll(state,0700)); state,_=filepath.Abs(state)
+ state=os.Getenv("SYNOPKG_PKGVAR"); if state=="" { state="./state" }
+ must(os.MkdirAll(state,0700)); var err error; state,err=filepath.Abs(state); must(err)
  if len(os.Args)>1 && os.Args[1]=="init" { initCredential(); return }
  if len(os.Args)<2 { log.Fatal("usage: pcl-wrapper /path/to/prusa_connect_amd64 | init") }
- must(os.MkdirAll(filepath.Join(state,"config"),0700))
- cfg:=filepath.Join(state,"config","config.yaml")
- if _,err:=os.Stat(cfg); os.IsNotExist(err) {
-  // The browser listener is HTTPS; HTTP is retained separately for printer firmware.
-  must(os.WriteFile(cfg,[]byte(fmt.Sprintf("core:\n  api:\n    addr: \":%d\"\n  trusted_proxies:\n    - 127.0.0.1/32\n    - ::1/128\n  upgrade:\n    enabled: false\n",backendPort)),0600))
- }
  cert,key:=certFiles()
- // Bind before launching upstream, so a conflicting HTTPS port fails cleanly.
- listener,err:=net.Listen("tcp",fmt.Sprintf(":%d",httpsPort)); must(err)
+ must(migrateConfig(state))
+ // Only the setup portal is served by this wrapper. Prusa owns HTTPS 18443.
+ listener,err:=net.Listen("tcp",fmt.Sprintf(":%d",portalPort)); must(err)
  ctx,cancel:=signal.NotifyContext(context.Background(),syscall.SIGTERM,syscall.SIGINT); defer cancel()
  done:=make(chan struct{}); go func(){ defer close(done); runChild(ctx,os.Args[1]) }()
- target,_:=url.Parse(fmt.Sprintf("http://127.0.0.1:%d",backendPort))
- proxy:=httputil.NewSingleHostReverseProxy(target)
- proxy.FlushInterval=-1
- original:=proxy.Director
- proxy.Director=func(r *http.Request){ original(r); r.Header.Del("Forwarded"); r.Header.Del("X-Forwarded-For"); r.Header.Set("X-Forwarded-Proto","https"); r.Header.Set("X-Forwarded-Host",r.Host) }
- proxy.ErrorHandler=func(w http.ResponseWriter,r *http.Request,e error){ http.Error(w,"Prusa Connect is starting or unavailable. Retry shortly.",503) }
  mux:=http.NewServeMux()
  mux.Handle("/_synology/setup",auth(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
   w.Header().Set("Cache-Control","no-store"); w.Header().Set("Referrer-Policy","no-referrer"); w.Header().Set("X-Frame-Options","DENY")
   mu.RLock(); code,status,at:=setupCode,childStatus,setupAt; mu.RUnlock()
   if code=="" || time.Since(at)>30*time.Minute { code="Not available / Není dostupný" }
-  // Setup codes are displayed for at most 30 minutes and only behind portal auth.
   _=page.Execute(w,struct{Code,Status string; Ports map[string]int}{code,status,dsmPorts("/etc/synoinfo.conf")})
  })))
- mux.Handle("/",proxy)
  srv:=&http.Server{Handler:mux,ReadHeaderTimeout:10*time.Second,IdleTimeout:90*time.Second,MaxHeaderBytes:1<<20,TLSConfig:&tls.Config{MinVersion:tls.VersionTLS12}}
  go func(){ <-ctx.Done(); c,stop:=context.WithTimeout(context.Background(),25*time.Second); defer stop(); _=srv.Shutdown(c) }()
  err=srv.ServeTLS(listener,cert,key)
