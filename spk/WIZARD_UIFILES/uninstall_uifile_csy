@@ -1,0 +1,17 @@
+[
+  {
+    "step_title": "Odinstalace Prusa Connect Local",
+    "items": [
+      {
+        "type": "multiselect",
+        "subitems": [
+          {
+            "key": "wizard_delete_data",
+            "desc": "Trvale smazat VSECHNA data balicku, nastaveni, ucty, ulozene soubory, heslo portalu, certifikat a logy. Nevratne. Externi zalohy a soubory v tiskarnach se nemazou.",
+            "defaultValue": false
+          }
+        ]
+      }
+    ]
+  }
+]

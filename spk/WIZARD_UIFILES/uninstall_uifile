@@ -1,0 +1,17 @@
+[
+  {
+    "step_title": "Uninstall Prusa Connect Local",
+    "items": [
+      {
+        "type": "multiselect",
+        "subitems": [
+          {
+            "key": "wizard_delete_data",
+            "desc": "Permanently delete ALL package data, settings, accounts, stored files, portal password, certificate and logs. Irreversible. External backups and printer files are not deleted.",
+            "defaultValue": false
+          }
+        ]
+      }
+    ]
+  }
+]

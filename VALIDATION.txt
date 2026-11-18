@@ -1,1 +1,1 @@
-Version 0.1.0-0003: Python syntax parsed; INFO generator checked for HTTPS port 18443, empty adminurl, absent dsmappname; workflow version updated. No Go compilation, real SPK build or DSM runtime validation performed. Earlier icon and source checks are described in v2.
+v0004: shell syntax and wizard JSON passed. Four non-destructive cleanup guard tests passed: skip upgrade, skip unconfirmed, reject wrong package, reject unexpected directory. Actual deletion, Go build, SPK installation, wizard rendering and DSM runtime NOT tested.

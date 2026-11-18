@@ -40,9 +40,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh api "repos/prusa3d/prusa-connect/contents/LICENSE?ref=v0.1.0-beta.1" --jq .content | base64 --decode > build/upstream/LICENSE
       - name: Assemble SPK
-        run: python3 tools/build_spk.py --wrapper build/pcl-wrapper --upstream build/upstream/prusa_connect_amd64 --output build/PrusaConnectLocal-geminilake-0.1.0-0003.spk
+        run: python3 tools/build_spk.py --wrapper build/pcl-wrapper --upstream build/upstream/prusa_connect_amd64 --output build/PrusaConnectLocal-geminilake-0.1.0-0004.spk
       - name: Validate archive
-        run: python3 tools/test_package.py build/PrusaConnectLocal-geminilake-0.1.0-0003.spk
+        run: python3 tools/test_package.py build/PrusaConnectLocal-geminilake-0.1.0-0004.spk
       - uses: actions/upload-artifact@v4
         with:
           name: PrusaConnectLocal-DSM7-experimental

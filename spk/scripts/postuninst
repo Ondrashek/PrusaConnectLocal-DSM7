@@ -1,2 +1,20 @@
 #!/bin/sh
+set -eu
+[ "${SYNOPKG_PKG_STATUS:-}" = "UNINSTALL" ] || exit 0
+[ "${wizard_delete_data:-false}" = "true" ] || exit 0
+[ "${SYNOPKG_PKGNAME:-}" = "PrusaConnectLocal" ] || exit 1
+state=${SYNOPKG_PKGVAR:-/var/packages/PrusaConnectLocal/var}
+[ -e "$state" ] || exit 0
+resolved=$(readlink -f "$state") || exit 1
+printf '%s\n' "$resolved" | grep -Eq '^/volume[0-9]+/@appdata/PrusaConnectLocal$' || exit 1
+[ -r /proc/mounts ] || exit 1
+while read -r device mountpoint rest; do
+ case "$mountpoint" in
+  "$resolved"|"$resolved"/*) echo "Refusing cleanup of mounted data" >&2; exit 1 ;;
+ esac
+done < /proc/mounts
+for entry in "$resolved"/* "$resolved"/.[!.]* "$resolved"/..?*; do
+ [ -e "$entry" ] || [ -L "$entry" ] || continue
+ rm -rf -- "$entry"
+done
 exit 0
